@@ -15,7 +15,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:SEL_Columbia/mongoose-quadtree.git"
+    "url": "git@github.com:SEL-Columbia/mongoose-quadtree.git"
   },
   "keywords": [
     "mongo",
@@ -28,7 +28,7 @@
   "author": "Abdi Dahir",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/SEL_Columbia/mongoose-quadtree/issues"
+    "url": "https://github.com/SEL-Columbia/mongoose-quadtree/issues"
   },
-  "homepage": "https://github.com/SEL_Columbia/mongoose-quadtree"
+  "homepage": "https://github.com/SEL-Columbia/mongoose-quadtree"
 }

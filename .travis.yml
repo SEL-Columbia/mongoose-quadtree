@@ -20,4 +20,4 @@ deploy:
   on:
     tags: true
     all_branches: true
-    repo: SEL_Columbia/mongoose-quadtree
+    repo: SEL-Columbia/mongoose-quadtree
