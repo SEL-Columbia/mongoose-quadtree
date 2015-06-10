@@ -6,7 +6,6 @@ var sites = require('./fixtures/facilities.js');
 var total = 0;
 
 describe('Mongoose Quadtree Machine', function(done) {
-    console.log('Testing basic functionailty, the standard use case.');
     before(function(done) {
         mongoose.connect('mongodb://localhost/test', {});
         var db = mongoose.connection;
@@ -52,15 +51,66 @@ describe('Mongoose Quadtree Machine', function(done) {
 
         it('should init the quadtree structure for Model', function(done) {
             Model.init()
-                .then(function(anything, any) {
+                .then(function() {
                     var QuadtreeModel = Model.QuadtreeModel;
                     QuadtreeModel.find({}).exec(function(err, sites) {
-                        console.log(sites);
-                        console.log("Bump for travis");
+                        if (err) throw(err);
+                        sites.should.be.ok;
+                        sites.should.have.length(50);
                         done();
                     });
 
                  });
+        });
+
+        it('should grab root for Quadtree', function(done) {
+            Model.init()
+                .then(function() {
+                    Model.root(function(err, root) {
+                        if (err) throw(err);
+                        root.should.be.ok;
+                        //root.should.have.length(1);
+                        root._id.should.be.ok;
+                        done();
+                    });
+                });
+        });
+
+        it('should not recreate the Quadtree', function(done) {
+            Model.init()
+                .then(function() {
+                    Model.root(function(err, root) {
+                        if (err) throw(err);
+                        var id = root._id;
+                        Model.init()
+                            .then(function() {
+                                Model.root(function(err, root) {
+                                    if (err) throw(err);
+                                    root._id.should.match(id);
+                                    done();
+                                });
+                           });
+                    });
+                });
+        });
+
+        it('should recreate the Quadtree', function(done) {
+            done(); //TODO
+            //Model.init()
+            //    .then(function() {
+            //        Model.root(function(err, root) {
+            //            if (err) throw(err);
+            //            var id = root._id;
+            //            Model.init(true)
+            //                .then(function() {
+            //                    Model.root(function(err, root) {
+            //                        if (err) throw(err);
+            //                        root._id.should.not.match(id);
+            //                        done();
+            //                    });
+            //               });
+            //        });
+            //    });
         });
 
     });

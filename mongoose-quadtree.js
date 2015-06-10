@@ -12,9 +12,10 @@ function quadtreePlugin (schema, options) {
     // assumes connection happens before plugin or something? not sure but yea..
     var mongoose = require('mongoose');
     var conn = mongoose;
+    options = options || {};
 
     // get connection
-    if (options && options.conn) {
+    if (options.conn) {
         var conn = mongoose.connect(options.conn);
     } 
 

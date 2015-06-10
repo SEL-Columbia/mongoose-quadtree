@@ -42,6 +42,11 @@ var QuadtreeSchema = new Schema({
         type: Number,
     },
 
+    isRoot: {
+        type: Boolean,
+        default: false
+    },
+
     children: { 
         type: [String]
     }

@@ -16,6 +16,7 @@ var ModelSchema = new Schema({
 
 ModelSchema.plugin(quadtree, {
     index: true, 
+    threshold: 100,
     //conn: 'mongodb://localhost/test', required if connection isn't explict
     collectionName: 'model_collection' 
 });
