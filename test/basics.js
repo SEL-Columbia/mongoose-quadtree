@@ -53,10 +53,10 @@ describe('Mongoose Quadtree Machine', function(done) {
         it('should init the quadtree structure for Model', function(done) {
             Model.init()
                 .then(function(anything, any) {
-                    console.log(anything, any);
                     var QuadtreeModel = Model.QuadtreeModel;
                     QuadtreeModel.find({}).exec(function(err, sites) {
                         console.log(sites);
+                        console.log("Bump for travis");
                         done();
                     });
 
