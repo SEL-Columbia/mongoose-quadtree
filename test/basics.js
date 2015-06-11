@@ -32,7 +32,22 @@ describe('Mongoose Quadtree Machine', function(done) {
                 Model.collection.insert(sites, function(err, result) {
                     if (err) throw (err);   
                     total = result.result.n;
+                    done();
+                });
+            });
+        });
+    });
 
+    afterEach(function(done) {
+        Model.find({}).remove(function(err, result) {
+            if (err) throw (err);
+            var quadtree = Model.collection.name + "_quadtree";
+            mongoose.connection.collections[quadtree].remove({}, function(err, result) {
+                if (err) throw (err);   
+
+                Model.collection.insert(sites, function(err, result) {
+                    if (err) throw (err);   
+                    total = result.result.n;
                     done();
                 });
             });
@@ -40,15 +55,6 @@ describe('Mongoose Quadtree Machine', function(done) {
     });
 
     describe('Initilization tests', function(done) {
-        it('should init a new model with no hiccups', function(done) {
-            var model = new Model({name: 'Hello', coordinates: [1, 1] });
-            model.save(function(err, model) {
-                if (err) throw (err);
-                done();
-            });
-            
-        });
-
         it('should init the quadtree structure for Model', function(done) {
             Model.init()
                 .then(function() {
@@ -56,7 +62,7 @@ describe('Mongoose Quadtree Machine', function(done) {
                     QuadtreeModel.find({}).exec(function(err, sites) {
                         if (err) throw(err);
                         sites.should.be.ok;
-                        sites.should.have.length(50);
+                        sites.should.have.length(53);
                         done();
                     });
 
