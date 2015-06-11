@@ -34,24 +34,18 @@ var QuadtreeSchema = new Schema({
         required: true,
     },
 
-    compressedSize: {
-        type: Number,
-    },
-
-    uncompressedSize: {
-        type: Number,
-    },
-
     isRoot: {
         type: Boolean,
         default: false
     },
 
     children: { 
-        type: [String]
+        wn: String,
+        en: String,
+        ws: String,
+        es: String
+
     }
-
-
 });
 
 module.exports = QuadtreeSchema;
