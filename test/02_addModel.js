@@ -32,13 +32,13 @@ describe('Mongoose Quadtree Machine', function(done) {
                 Model.collection.insert(sites, function(err, result) {
                     if (err) throw (err);   
                     total = result.result.n;
-                    Model.init()
+                    Model.initTree()
                         .then(function() {
                             var QuadtreeModel = Model.QuadtreeModel;
                             QuadtreeModel.find({}).exec(function(err, sites) {
                                 if (err) throw(err);
                                 sites.should.be.ok;
-                                sites.should.have.length(53);
+                                sites.should.have.length(45);
                                 done();
                             });
 
@@ -67,7 +67,7 @@ describe('Mongoose Quadtree Machine', function(done) {
 
 
     describe('Adding facilities', function(done) {
-        it('should init a new model with no hiccups', function(done) {
+        it('should initTree a new model with no hiccups', function(done) {
 
             var model = new Model({name: 'Hello', coordinates: [1, 1] });
             model.save(function(err, model) {

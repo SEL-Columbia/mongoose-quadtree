@@ -34,7 +34,17 @@ var QuadtreeSchema = new Schema({
         required: true,
     },
 
+    sep: {
+        type: Number,
+        required: true,
+    },
+
     isRoot: {
+        type: Boolean,
+        default: false
+    },
+
+    isLeaf: {
         type: Boolean,
         default: false
     },

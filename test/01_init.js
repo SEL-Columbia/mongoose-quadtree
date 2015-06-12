@@ -38,31 +38,15 @@ describe('Mongoose Quadtree Machine', function(done) {
         });
     });
 
-    afterEach(function(done) {
-        Model.find({}).remove(function(err, result) {
-            if (err) throw (err);
-            var quadtree = Model.collection.name + "_quadtree";
-            mongoose.connection.collections[quadtree].remove({}, function(err, result) {
-                if (err) throw (err);   
-
-                Model.collection.insert(sites, function(err, result) {
-                    if (err) throw (err);   
-                    total = result.result.n;
-                    done();
-                });
-            });
-        });
-    });
-
     describe('Initilization tests', function(done) {
-        it('should init the quadtree structure for Model', function(done) {
-            Model.init()
+        it('should initTree the quadtree structure for Model', function(done) {
+            Model.initTree()
                 .then(function() {
                     var QuadtreeModel = Model.QuadtreeModel;
                     QuadtreeModel.find({}).exec(function(err, sites) {
                         if (err) throw(err);
                         sites.should.be.ok;
-                        sites.should.have.length(53);
+                        sites.should.have.length(45);
                         done();
                     });
 
@@ -70,7 +54,7 @@ describe('Mongoose Quadtree Machine', function(done) {
         });
 
         it('should grab root for Quadtree', function(done) {
-            Model.init()
+            Model.initTree()
                 .then(function() {
                     Model.root(function(err, root) {
                         if (err) throw(err);
@@ -83,12 +67,12 @@ describe('Mongoose Quadtree Machine', function(done) {
         });
 
         it('should not recreate the Quadtree', function(done) {
-            Model.init()
+            Model.initTree()
                 .then(function() {
                     Model.root(function(err, root) {
                         if (err) throw(err);
                         var id = root._id;
-                        Model.init()
+                        Model.initTree()
                             .then(function() {
                                 Model.root(function(err, root) {
                                     if (err) throw(err);
@@ -102,12 +86,12 @@ describe('Mongoose Quadtree Machine', function(done) {
 
         it('should recreate the Quadtree', function(done) {
             done(); //TODO
-            //Model.init()
+            //Model.initTree()
             //    .then(function() {
             //        Model.root(function(err, root) {
             //            if (err) throw(err);
             //            var id = root._id;
-            //            Model.init(true)
+            //            Model.initTree(true)
             //                .then(function() {
             //                    Model.root(function(err, root) {
             //                        if (err) throw(err);
