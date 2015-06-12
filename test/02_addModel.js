@@ -3,7 +3,10 @@ var should = require('should');
 var mongoose = require('mongoose');
 var Model = require('../models/model.js').Model;
 var sites = require('./fixtures/facilities.js');
+
 var total = 0;
+var max_leaf;
+var almost_max_leaf;
 
 describe('Mongoose Quadtree Machine', function(done) {
     before(function(done) {
@@ -38,7 +41,19 @@ describe('Mongoose Quadtree Machine', function(done) {
                             QuadtreeModel.find({}).exec(function(err, sites) {
                                 if (err) throw(err);
                                 sites.should.be.ok;
-                                sites.should.have.length(45);
+                                sites.forEach(function(site) {
+
+                                    if(site.isLeaf && site.count == 100) {
+                                        console.log(site, "max leaf");
+                                        max_leaf = site;
+                                    }
+
+                                    if(site.isLeaf && site.count === 99) {
+                                        console.log(site, "almost max leaf");
+                                        almost_max_leaf = site;
+                                    }
+
+                                });
                                 done();
                             });
 
@@ -67,18 +82,72 @@ describe('Mongoose Quadtree Machine', function(done) {
 
 
     describe('Adding facilities', function(done) {
-        it('should initTree a new model with no hiccups', function(done) {
-
+        it('should add Model to existing leaf', function(done) {
             var model = new Model({name: 'Hello', coordinates: [1, 1] });
             model.save(function(err, model) {
                 if (err) throw (err);
-                setTimeout(function() {
-                    console.log("Not waiting");
+                var QuadtreeModel = Model.QuadtreeModel;
+                QuadtreeModel[model._id].then(function(node) {
+                    node.data[0].should.match(model);
                     done();
-                }, 1000);
+                });
             });
-            
         });
+
+        it('should add two Models to existing leaf', function(done) {
+            var model = new Model({name: 'Hello', coordinates: [1, 1] });
+            model.save(function(err, model) {
+                if (err) throw (err);
+                var QuadtreeModel = Model.QuadtreeModel;
+                QuadtreeModel[model._id].then(function(node) {
+                    var model2 = new Model({name: 'Hello', coordinates: [1, 1.001] });
+                    model2.save(function(err, model2) {
+                        if (err) throw (err);
+                        var QuadtreeModel = Model.QuadtreeModel;
+                        QuadtreeModel[model2._id].then(function(node2) {
+                            node2.data[0]._id.should.match(model._id);
+                            node2.data[1]._id.should.match(model2._id);
+                            node._id.should.match(node._id);
+                            done();
+                        });
+                    });
+                });
+            });
+        });
+
+        it('should add two Models to existing leaf concurrently', function(done) {
+            var model = new Model({name: 'Hello', coordinates: [1, 1] });
+            model.save(function(err, model) {
+                if (err) throw (err);
+                var model2 = new Model({name: 'Hello', coordinates: [1, 1.001] });
+                model2.save(function(err, model2) {
+                    if (err) throw (err);
+                    var QuadtreeModel = Model.QuadtreeModel;
+                    QuadtreeModel[model2._id].then(function(node2) {
+                        console.log(node2);
+                        console.log(model2);
+                        console.log(model);
+
+                        //node2.data[0]._id.should.match(model._id);
+                        //node2.data[1]._id.should.match(model2._id);
+                        done();
+                    });
+                });
+            });
+        });
+
+        it('should add Model to existing maxed out leaf', function(done) {
+            var model = new Model({name: 'Hello', coordinates: [1, 1] });
+            model.save(function(err, model) {
+                if (err) throw (err);
+                var QuadtreeModel = Model.QuadtreeModel;
+                QuadtreeModel[model._id].then(function(node) {
+                    node.data[0].should.match(model);
+                    done();
+                });
+            });
+        });
+
     });
 });
 

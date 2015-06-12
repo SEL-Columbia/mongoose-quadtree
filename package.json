@@ -4,7 +4,8 @@
   "description": "mongoose quadtree index",
   "main": "mongoose-quadtree.js",
   "dependencies": {
-    "mongoose": "^4.0.5"
+    "mongoose": "^4.0.5",
+    "rwlock": "^5.0.0"
   },
   "devDependencies": {
     "mocha": "^2.0.1",

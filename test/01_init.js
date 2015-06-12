@@ -46,7 +46,7 @@ describe('Mongoose Quadtree Machine', function(done) {
                     QuadtreeModel.find({}).exec(function(err, sites) {
                         if (err) throw(err);
                         sites.should.be.ok;
-                        sites.should.have.length(45);
+                        sites.should.have.length(81);
                         done();
                     });
 
