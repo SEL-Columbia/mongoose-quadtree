@@ -43,7 +43,7 @@ describe('Mongoose Quadtree Machine', function(done) {
                                 sites.should.be.ok;
                                 sites.forEach(function(site) {
 
-                                    if(site.isLeaf && site.count == 100) {
+                                    if(site.isLeaf && site.count > 90) {
                                         console.log(site, "max leaf");
                                         max_leaf = site;
                                     }
