@@ -56,6 +56,11 @@ var QuadtreeSchema = new Schema({
         es: String
 
     }
-});
+    },
+    {
+        id: false,
+        versionKey: false
+
+    });
 
 module.exports = QuadtreeSchema;
