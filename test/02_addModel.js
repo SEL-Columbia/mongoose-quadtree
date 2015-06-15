@@ -127,7 +127,6 @@ describe('Mongoose Quadtree Machine', function(done) {
         });
 
         it('should add Model to existing maxed out leaf until it splits', function(done) {
-            this.timeout = 5000;
             var i;
             var QuadtreeModel = Model.QuadtreeModel;
             for (i = 0; i + max_leaf.count < 101; i++) {
@@ -140,7 +139,8 @@ describe('Mongoose Quadtree Machine', function(done) {
                     QuadtreeModel[m._id].then(function(node) {
                         console.log(node.count)
                         if (node.count == 101) { 
-                            console.log(node.children);
+                            node.children.should.be.ok;
+                            //XXX maybe query newly broken nodes child for last model
                             done();
                         }
                     });
