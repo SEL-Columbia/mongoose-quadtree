@@ -1,13 +1,12 @@
 var QuadtreeSchema = require('./models/quadtree.js');
+var utils = require('./lib/utils.js');
+
 var buildQuadtreeMethods = require('./lib/methods.js');
 var buildSaveMethods = require('./lib/save.js');
 var buildStaticFunctions = require('./lib/statics.js');
+
 var models = {};
 function quadtreePlugin (schema, options) {
-
-    /* SCHEMA CHANGES */
-    var collectionName = options.collectionName + "_quadtree";
-    var Quadtree;
 
     // assumes connection happens before plugin or something? not sure but yea..
     var mongoose = require('mongoose');
@@ -19,6 +18,12 @@ function quadtreePlugin (schema, options) {
         var conn = mongoose.connect(options.conn);
     } 
 
+    if (!options.collectionName) {
+        throw new Error('Must provide collection name');
+    }
+
+    var collectionName = options.collectionName + "_quadtree";
+
     // avoid recompilation
     if (models[collectionName]) {
         Quadtree = models[collectionName];
@@ -28,6 +33,7 @@ function quadtreePlugin (schema, options) {
     }
 
     schema.statics.QuadtreeModel = Quadtree;
+    //utils.setModel(conn.model(options.collectionName, schema, collectionName), options.collectionName);
 
     /* STORAGE METHODS (happen transparently) */
     buildSaveMethods(schema, options);

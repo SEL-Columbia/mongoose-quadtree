@@ -85,22 +85,21 @@ describe('Mongoose Quadtree Machine', function(done) {
         });
 
         it('should recreate the Quadtree', function(done) {
-            done(); //TODO
-            //Model.initTree()
-            //    .then(function() {
-            //        Model.root(function(err, root) {
-            //            if (err) throw(err);
-            //            var id = root._id;
-            //            Model.initTree(true)
-            //                .then(function() {
-            //                    Model.root(function(err, root) {
-            //                        if (err) throw(err);
-            //                        root._id.should.not.match(id);
-            //                        done();
-            //                    });
-            //               });
-            //        });
-            //    });
+            Model.initTree()
+                .then(function() {
+                    Model.root(function(err, root) {
+                        if (err) throw(err);
+                        var id = root._id;
+                        Model.initTree(true)
+                            .then(function() {
+                                Model.root(function(err, root) {
+                                    if (err) throw(err);
+                                    root._id.should.not.match(id);
+                                    done();
+                                });
+                           });
+                    });
+                });
         });
 
     });
