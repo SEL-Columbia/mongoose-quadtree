@@ -4,7 +4,7 @@ Mongoose Quadtree
 [![Build Status](https://travis-ci.org/SEL-Columbia/mongoose-quadtree.svg?branch=master)](https://travis-ci.org/SEL-Columbia/mongoose-quadtree)
 
 ## Overview
-Mongoose-quadtree adds quadtree abilities to a model that has an appropiate lat/lng field.
+Mongoose-quadtree adds quadtree abilities to a model that has an appropiate lat/lng field. Think of it as an index
 
 
 ### Status
