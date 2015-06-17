@@ -121,6 +121,8 @@ describe('Mongoose Quadtree Machine', function(done) {
                 });
             };
 
+            var totalCompressed = 0;
+            var totalUncompressed = 0;
             Model.initTree()
                 .onResolve(function(err) {
                     Model.findNodes({'en': [7, 14], 'ws': [6, 12]})
@@ -129,6 +131,9 @@ describe('Mongoose Quadtree Machine', function(done) {
                             data.should.be.ok;
                             var quadSites = [] 
                             data.forEach(function(site) {
+                                    
+                                totalUncompressed += site.uncompressedSize;
+                                totalCompressed += site.compressedSize;
                                  var c = LZString.decompress(site.data[0]);
                                  var d = JSON.parse(c);
                                  d.forEach(function(s) {
@@ -144,12 +149,66 @@ describe('Mongoose Quadtree Machine', function(done) {
                                     assert(quadSites.indexOf(String(s._id)) > -1);
                                 });
 
+                                console.log("compressed", totalCompressed, "uncompressed", totalUncompressed);
+                                console.log("ratio", totalCompressed/totalUncompressed * 100);
                                 done();
                             }); 
                         });
                 });
         });
 
+        it('should find alot of facilities within bounds', function(done) {
+            var QuadtreeModel = Model.QuadtreeModel;
+
+            // Helper method for testing
+            function findWithin(nlat, wlng, slat, elng) { 
+                return Model.find({
+                    "coordinates": { //TODO replace with option
+                        "$geoWithin": {
+                            "$box": [
+                                [wlng, slat],
+                                [elng, nlat]
+                            ]
+                        }
+                    }
+                });
+            };
+
+            var totalCompressed = 0;
+            var totalUncompressed = 0;
+            Model.initTree()
+                .onResolve(function(err) {
+                    var nlat = 85;
+                    var elng = 180;
+                    var slat = -85;
+                    var wlng = -180;
+                    var QuadtreeModel = Model.QuadtreeModel;
+                    Model.findNodes({'en': [elng, nlat], 'ws': [wlng, slat]})
+                        .onResolve(function(err, data) {
+                            if (err) throw (err);
+                            data.should.be.ok;
+                            var quadSites = [] 
+                            data.forEach(function(site) {
+                                    
+                                totalUncompressed += site.uncompressedSize;
+                                totalCompressed += site.compressedSize;
+                                 var c = LZString.decompress(site.data[0]);
+                                 var d = JSON.parse(c);
+                                 d.forEach(function(s) {
+                                    quadSites.push(String(s._id));
+                                 });
+                            }); 
+
+                            findWithin(nlat, wlng, slat, elng).exec(function(err, sites) {
+                                if(err) throw(err);
+                                quadSites.length.should.equal(sites.length);
+                                console.log("compressed", totalCompressed, "uncompressed", totalUncompressed);
+                                console.log("ratio", totalCompressed/totalUncompressed * 100);
+                                done();
+                            }); 
+                        });
+                });
+        });
 
         it('should retrieve subtree containing all facilities within bounds', function(done) {
 

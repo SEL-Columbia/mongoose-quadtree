@@ -34,6 +34,16 @@ var QuadtreeSchema = new Schema({
         required: true,
     },
 
+    compressedSize: {
+        type: Number,
+        default: 0,
+    },
+
+    uncompressedSize: {
+        type: Number,
+        default: 0,
+    },
+
     sep: {
         type: Number,
         required: true,
