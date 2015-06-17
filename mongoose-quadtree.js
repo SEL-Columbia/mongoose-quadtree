@@ -22,6 +22,10 @@ function quadtreePlugin (schema, options) {
         throw new Error('Must provide collection name');
     }
 
+    // Option defaults
+    options.seperation = options.seperation || 1;
+    options.threshold = options.threshold || 2500;
+
     var collectionName = options.collectionName + "_quadtree";
 
     // avoid recompilation

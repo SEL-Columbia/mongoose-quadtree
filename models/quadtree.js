@@ -50,10 +50,10 @@ var QuadtreeSchema = new Schema({
     },
 
     children: { 
-        wn: String,
-        en: String,
-        ws: String,
-        es: String
+        wn: Anything,
+        en: Anything,
+        ws: Anything,
+        es: Anything
 
     }
     },
