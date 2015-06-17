@@ -25,6 +25,7 @@ function quadtreePlugin (schema, options) {
     // Option defaults
     options.seperation = options.seperation || 1;
     options.threshold = options.threshold || 2500;
+    options.compress = options.compress || false;
 
     var collectionName = options.collectionName + "_quadtree";
 
