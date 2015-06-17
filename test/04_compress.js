@@ -6,6 +6,7 @@ var Model = require('../models/modelCompress.js').Model;
 var sites = require('./fixtures/facilities.js');
 var LZString = require('lz-string');
 var total = 0;
+var max_leaf;
 
 describe('Mongoose Quadtree Machine', function(done) {
     before(function(done) {
@@ -40,7 +41,7 @@ describe('Mongoose Quadtree Machine', function(done) {
         });
     });
 
-    describe('Initilization tests', function(done) {
+    describe('Active compression  tests', function(done) {
         it('should initTree the quadtree structure for Model', function(done) {
             Model.initTree()
                 .then(function() {
@@ -266,6 +267,56 @@ describe('Mongoose Quadtree Machine', function(done) {
                             });
                     });
                 });
+        });
+
+        it('should add Model to existing maxed out leaf until it splits', function(done) {
+            var i;
+            Model.initTree()
+                .onResolve(function(err) {
+                   var QuadtreeModel = Model.QuadtreeModel;
+                   QuadtreeModel.find({}).exec(function(err, sites) {
+                       if (err) throw(err);
+                       sites.should.be.ok;
+                       sites.forEach(function(site) {
+
+                           if(site.isLeaf && site.count > 93) {
+                               max_leaf = site;
+                           }
+                       });
+
+                        var resolved = 101 - max_leaf.count;
+                       for (i = 0; i + max_leaf.count < 101; i++) {
+                           max_leaf.center[0] + i*0.001;
+                           max_leaf.center[1] + i*0.002;
+                           var model = new Model({name: ''+ i, coordinates: max_leaf.center });
+                           model.save(function(err, m) {
+                               if (err) throw (err);
+                               var QuadtreeModel = Model.QuadtreeModel;
+                               QuadtreeModel[m._id].onResolve(function(err, node, count) {
+                                   resolved--;
+                                   
+                                   // Later update that didnt insert new nodes
+                                   if (count == 0) {
+                                       node.count.should.match((101 - max_leaf.count));
+                                   }
+
+                                   // First update to break leaf node
+                                   if (count == 7) {
+                                       node.children.should.be.ok;
+                                       node.count.should.equal(101);
+                                       node.children.en.should.be.ok;
+                                       assert(node.isLeaf == false);
+                                   }
+
+                                   if (resolved == 0) { 
+                                           done();
+                                   }
+                               });
+                           });
+                       };
+                    });
+                });
+
         });
 
     });
