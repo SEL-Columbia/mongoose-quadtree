@@ -35,7 +35,7 @@ describe('Mongoose Quadtree Machine', function(done) {
                     if (err) throw (err);   
                     total = result.result.n;
                     Model.initTree()
-                        .then(function() {
+                        .onResolve(function(err) {
                             var QuadtreeModel = Model.QuadtreeModel;
                             QuadtreeModel.find({}).exec(function(err, sites) {
                                 if (err) throw(err);
@@ -43,7 +43,6 @@ describe('Mongoose Quadtree Machine', function(done) {
                                 sites.forEach(function(site) {
 
                                     if(site.isLeaf && site.count > 93) {
-                                        console.log(site._id, site.count, "max leaf");
                                         max_leaf = site;
                                     }
 
@@ -81,8 +80,8 @@ describe('Mongoose Quadtree Machine', function(done) {
             model.save(function(err, model) {
                 if (err) throw (err);
                 var QuadtreeModel = Model.QuadtreeModel;
-                QuadtreeModel[model._id].then(function(node) {
-                    node.data[0].should.match(model);
+                QuadtreeModel[model._id].onResolve(function(err, node) {
+                    node.data[0]._id.should.match(model._id);
                     done();
                 });
             });
@@ -93,12 +92,12 @@ describe('Mongoose Quadtree Machine', function(done) {
             model.save(function(err, model) {
                 if (err) throw (err);
                 var QuadtreeModel = Model.QuadtreeModel;
-                QuadtreeModel[model._id].then(function(node) {
+                QuadtreeModel[model._id].onResolve(function(err, node) {
                     var model2 = new Model({name: 'Hello', coordinates: [1, 1.001] });
                     model2.save(function(err, model2) {
                         if (err) throw (err);
                         var QuadtreeModel = Model.QuadtreeModel;
-                        QuadtreeModel[model2._id].then(function(node2) {
+                        QuadtreeModel[model2._id].onResolve(function(err, node2) {
                             node2.data[0]._id.should.match(model._id);
                             node2.data[1]._id.should.match(model2._id);
                             node._id.should.match(node._id);
@@ -117,7 +116,7 @@ describe('Mongoose Quadtree Machine', function(done) {
                 model2.save(function(err, model2) {
                     if (err) throw (err);
                     var QuadtreeModel = Model.QuadtreeModel;
-                    QuadtreeModel[model2._id].then(function(node2) {
+                    QuadtreeModel[model2._id].onResolve(function(err, node2) {
                         node2.data[0]._id.should.match(model._id);
                         node2.data[1]._id.should.match(model2._id);
                         done();
@@ -129,6 +128,7 @@ describe('Mongoose Quadtree Machine', function(done) {
         it('should add Model to existing maxed out leaf until it splits', function(done) {
             var i;
             var QuadtreeModel = Model.QuadtreeModel;
+            var resolved = 101 - max_leaf.count;
             for (i = 0; i + max_leaf.count < 101; i++) {
                 max_leaf.center[0] + i*0.001;
                 max_leaf.center[1] + i*0.002;
@@ -136,12 +136,24 @@ describe('Mongoose Quadtree Machine', function(done) {
                 model.save(function(err, m) {
                     if (err) throw (err);
                     var QuadtreeModel = Model.QuadtreeModel;
-                    QuadtreeModel[m._id].then(function(node) {
-                        console.log(node.count)
-                        if (node.count == 101) { 
+                    QuadtreeModel[m._id].onResolve(function(err, node, count) {
+                        resolved--;
+                        
+                        // Later update that didnt insert new nodes
+                        if (count == 0) {
+                            node.count.should.match((101 - max_leaf.count));
+                        }
+
+                        // First update to break leaf node
+                        if (count == 7) {
                             node.children.should.be.ok;
-                            //XXX maybe query newly broken nodes child for last model
-                            done();
+                            node.count.should.equal(101);
+                            node.children.en.should.be.ok;
+                            assert(node.isLeaf == false);
+                        }
+
+                        if (resolved == 0) { 
+                                done();
                         }
                     });
                 });

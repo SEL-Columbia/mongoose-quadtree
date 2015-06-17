@@ -62,7 +62,6 @@ describe('Mongoose Quadtree Machine', function(done) {
                                 sites.forEach(function(site) {
 
                                     if(site.isLeaf && site.count > 93) {
-                                        console.log(site._id, site.count, "max leaf");
                                         max_leaf = site;
                                     }
 
@@ -128,7 +127,6 @@ describe('Mongoose Quadtree Machine', function(done) {
                     findWithin(14, 6, 12, 7).exec(function(err, sites) {
                         if(err) throw(err);
                         assert(quadSites.length >= sites.length);
-                        console.log(quadSites.length);
                         sites.forEach(function(s) {
                             assert(quadSites.indexOf(String(s._id)) > -1);
                         });
