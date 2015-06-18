@@ -4,9 +4,9 @@ var mongoose = require('mongoose');
 var Promise = require('mongoose').Promise;
 var Model = require('../models/modelCompress.js').Model;
 var sites = require('./fixtures/facilities.js');
-var LZString = require('lz-string');
 var total = 0;
 var max_leaf;
+var LZString = require('lz-string');
 
 describe('Mongoose Quadtree Machine', function(done) {
     before(function(done) {
@@ -135,7 +135,7 @@ describe('Mongoose Quadtree Machine', function(done) {
                                     
                                 totalUncompressed += site.uncompressedSize;
                                 totalCompressed += site.compressedSize;
-                                 var c = LZString.decompress(site.data[0]);
+                                 var c = LZString.decompressFromUTF16(site.data[0]);
                                  var d = JSON.parse(c);
                                  d.forEach(function(s) {
                                     quadSites.push(String(s._id));
@@ -193,7 +193,7 @@ describe('Mongoose Quadtree Machine', function(done) {
                                     
                                 totalUncompressed += site.uncompressedSize;
                                 totalCompressed += site.compressedSize;
-                                 var c = LZString.decompress(site.data[0]);
+                                 var c = LZString.decompressFromUTF16(site.data[0]);
                                  var d = JSON.parse(c);
                                  d.forEach(function(s) {
                                     quadSites.push(String(s._id));
@@ -230,7 +230,7 @@ describe('Mongoose Quadtree Machine', function(done) {
                 }
 
                 if (tree.isLeaf) {
-                    var c = LZString.decompress(tree.data[0]);
+                    var c = LZString.decompressFromUTF16(tree.data[0]);
                     var d = JSON.parse(c);
                     p.fulfill(d);
                     return p;

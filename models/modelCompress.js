@@ -20,15 +20,15 @@ ModelSchema.plugin(quadtree, {
     seperation: 0.05,
     compress: true,
     //conn: 'mongodb://localhost/test', required if connection isn't explict
-    collectionName: 'model_collection' 
+    collectionName: 'modelCompress_collection' 
 });
 
-var Model;
+var ModelCompress;
 
-if (mongoose.models.Model) {
-    Model = mongoose.model('Model');
+if (mongoose.models.ModelCompress) {
+    ModelCompress = mongoose.model('ModelCompress');
 } else {
-    Model = mongoose.model('Model', ModelSchema, 'model_collection');
+    ModelCompress = mongoose.model('ModelCompress', ModelSchema, 'modelCompress_collection');
 }
 
-exports.Model = Model;
+exports.Model = ModelCompress;
