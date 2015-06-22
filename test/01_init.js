@@ -55,13 +55,26 @@ describe('Mongoose Quadtree Machine', function(done) {
 
         it('should grab root for Quadtree', function(done) {
             Model.initTree()
-                .then(function() {
-                    Model.root(function(err, root) {
-                        if (err) throw(err);
-                        root.should.be.ok;
-                        //root.should.have.length(1);
-                        root._id.should.be.ok;
-                        done();
+                .onResolve(function(err) {
+                    Model.root()
+                        .onResolve(function(err, root) { 
+                            if (err) throw(err);
+                            root.should.be.ok;
+                            root._id.should.be.ok;
+                            root.isRoot.should.be.ok;
+                            done();
+                    });
+                });
+        });
+
+        it('should wipe Quadtree', function(done) {
+            Model.initTree()
+                .onResolve(function(err) {
+                    Model.wipeQuadTree()
+                        .onResolve(function(err, wiped) {
+                            if (err) throw(err);
+                            wiped.result.n.should.match(81);
+                            done();
                     });
                 });
         });

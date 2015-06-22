@@ -2,7 +2,6 @@ var mongoose = require('mongoose');
 var Document = mongoose.Document;
 
 var Schema = mongoose.Schema;
-//var collectionName = '_quadtree';
 var Anything = mongoose.Schema.Types.Mixed;
 var ObjectID = Schema.Types.ObjectId;
 
