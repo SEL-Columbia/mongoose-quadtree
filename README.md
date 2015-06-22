@@ -62,8 +62,8 @@ The next step is to initilize the tree. Call this function somewhere after makin
 
 ```javascript
 var forceRebuild = true;
-var Promise = Model.initTree(forceRebuild);
-Promise.onResolve(function(err) {
+var promise = Model.initTree(forceRebuild);
+promise.onResolve(function(err) {
     console.log("Tree built");
 });
 ```
@@ -93,7 +93,7 @@ Leaf node data is ALWAYS an array (one element array in compressed case)
 ### Updating
 Updates happen transparently on save and remove calls ;) Don't even worry about it.
 
-### Status
+## Status
 In development, it is safe to use now mostly, but I'd recommend rebuilding the index nightly.
 
 ### TODO
