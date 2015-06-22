@@ -8,16 +8,17 @@ var buildStaticFunctions = require('./lib/statics.js');
 var models = {};
 function quadtreePlugin (schema, options) {
 
-    // assumes connection happens before plugin or something? not sure but yea..
+    // Assumes connection happens before plugin or something? not sure but yea..
     var mongoose = require('mongoose');
     var conn = mongoose;
     options = options || {};
 
-    // get connection
+    // Get connection
     if (options.conn) {
         var conn = mongoose.connect(options.conn);
     } 
 
+    // Plugin requires collection name to work correctly, soz
     if (!options.collectionName) {
         throw new Error('Must provide collection name');
     }
@@ -29,7 +30,7 @@ function quadtreePlugin (schema, options) {
 
     var collectionName = options.collectionName + "_quadtree";
 
-    // avoid recompilation
+    // Avoid recompilation
     if (models[collectionName]) {
         Quadtree = models[collectionName];
     } else {
