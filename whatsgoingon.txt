@@ -1,0 +1,178 @@
+--------------------------------------------------------------------------------
+0. -------------------------------- Problem ------------------------------------
+--------------------------------------------------------------------------------
+
+The goal of this project was to solve the problem of hosting 100's of MB's of
+Revisit facility data on mobile browsers. Revisit is a facility data store and 
+using its API we are capable of making a variety of useful webtools that depend 
+on centeralized facility information. However, facility data can grow quiet 
+large. For example, our data for regions in Nigeria currently exceed 100MB 
+alone. This is quite impossible to store offline in any mobile browser currently
+hence the need for some kind of compression.
+
+It would seem that a simple solution for this problem would be to query only a
+portion of Revisit facility data, or query as needed. However in our offline
+usecase we need the client to query large areas and have all facilities in that
+area accesible offline.
+
+Simply compressing the data is also not sufficient. When it comes time to use
+the data for retrieving a single facility, all of the data would need to be
+decompressed, blowing up RAM usage. On mobile devices RAM is precious, we cannot
+sacrifice that much RAM every time a single facility is needed.
+
+This was the motivation for a quadtree index.
+
+--------------------------------------------------------------------------------
+1. ---------------------------------- Goal -------------------------------------
+--------------------------------------------------------------------------------
+
+The goal is to compress facility data in a way that is easily queryable. When
+recieving queries such as: "How many facilities are near location c with radius
+r" and "Give me all facilities within lat/lng bounding box b" we would like to
+decompress a minimal amount of data while still returning fully accurate 
+results. We would like to include as much facility data as possible while still
+keeping the memory footprint low. Finally, we'd like to keep compression 
+efficiency as high as possible, as well as minimizing the time to query this
+facility data; i.e we'd like to the compressed size and query time to be near 
+equal to simply querying Revisit for all facility data and compressing the
+result.
+
+
+--------------------------------------------------------------------------------
+2. ------------------------------- Solution ------------------------------------
+--------------------------------------------------------------------------------
+
+-----------------------------------
+||| |   |       |                 |
+|---|   |       |                 |
+|   |   |       |                 |
+|-------|       |                 |
+|       |       |                 |
+|       |       |                 |
+|---------------|                 |
+|               |                 |
+|               |                 |
+|               |                 |
+|               |                 |
+|               |                 |
+|               |                 |
+|----------------------------------
+
+Our solution is to create a quadtree structure with leaf nodes containing data
+for its bounding region. Each node represents a rectangular area. If the number
+of facilities in this area exceedes a threshold the area is subdivided in four
+and four new children nodes are created. This process is repeated recursively
+until leaf nodes with facility counts below the threshold are reached. The
+facilities in this area are compressed and stored in this leaf node. This tree
+now contains all the same facility data originally represented in Revisit
+chunked up spatially along with extra metadata allowing us to search for a
+specific region in time proportional to the height of tree. With this tree we 
+can answer the queries stated in Section 1 using only a portion of the 
+compressed data.
+
+For example. Say we are looking for all facilities within bounding box en: (10, 
+10) and ws: (-10, -10). Starting at the root node of tree, We'd check if this
+bounding box intersects or is contained in the node. If so, we know we have
+facility data for this region. We check for intersections for each one of the
+children nodes and recurse on all that are hit. Eventually a leaf node will be
+reached and its data returned. After the recursion completes, rectangular
+patches of data covering the area of the original bounding box (and more) are
+returned. All facility data in the specified bounding box is guranteed to be
+returned. 
+
+To maintain a low query time, the data compression and tree construction is
+built on the Server. It is built at server start time and maintained with every
+facility insertion and removal.
+
+The client can request this tree data structure from Revisit. The client can
+specifiy which leaf nodes to populate with compressed data by providing a
+bounding box smaller then the world latitude and longitude boundries. With this
+the client can now query any facility in their specified region using the
+requested tree structure while decompressing only a portion of the full data.
+
+
+--------------------------------------------------------------------------------
+3. ----------------------------- Implemntation ---------------------------------
+--------------------------------------------------------------------------------
+
+Revisit was built on Mongo with Mongoose as an ODM. For this reason the quadtree
+index is built as a plugin for Mongoose. It's built as a plugin to provide a
+clear seperation between Revisits implementation and the indexes implementation.
+Adhering to this principle the index is stored in sepereate collection along
+side the collection storing Revisit data. When the index is requested through
+Revisits API, the quadtree collection is queried instead of the original
+collection. This collection is also where the compressed data is stored.
+
+On server start, Revisit calls a function defined in the quadtree plugin to
+build the quadtree index. If a index already exists, the index is not rebuilt. 
+When building the index for the first time, thousands of queries are made 
+against the original collection. These queries are mostly count queries to 
+determine the density of facilties in an area. Eventually data is requested and
+compressed using the LZString library. All of this in then stored in the 
+plugin's collection. The intilization process takes a bit of time. On a 100MB's
+of data (~250000 facilities), it can take about a minute. 
+
+The plugin listens to save calls on the original Revisit models. When a save is
+completed, the quadtree index executes a function that takes this newly inserted
+or updated models coordinates and finds the tree node that contains or will
+contain this facility. The original collection is re-queryed, counts are updated
+and data is recompressed. If the count changes, and the threshold is exceeded,
+the plugin creates four new children nodes and compresses data for the newly
+created leaf nodes. The node that was just split loses its leaf status and its
+data is removed. Similarly for removes, counts are updated and data is
+recompressed however nodes are not consilidated for simplicity.
+
+Due to the asynchronous nature of Mongo, the save callback that the quadtree
+plugins calls is not guaranteed to happen immediately after a single save nor is
+it guranteed to run uninterrupted until completion. The first problem is solved 
+by never explicitly using the newly saved documented provided to the save
+callback for anything other then node searching. All data updates and count
+updates are done by requerying the original Revisit collection. However the
+second issue can only be solved by blocking synchronization. For this reason the
+plugin uses a reader/writer lock scheme. On saves, the tree is locked for
+writing and on reads the tree is locked for reading. The library used for this
+is the rwlock library on NPM. The library claims that writer lock will exclude
+other writers and readers while the reader lock excludes only writers. This is 
+the desired behaviour however the library seems to leverage javascripts single 
+threaded nature to simulate a waitchannel and mutex using an array and integer. 
+This library will not work in a multithreaded setup. Sadly, I do not know of any
+alternatives that provide true low level locking mechanisms in Nodejs.
+
+The plugin provides two major functions, one being the originally described tree
+retrival the other simply returns an array of leaf nodes within a specified
+bounding box. When the subtree function is called, the function returns the tree
+data structure with data only in regions where the supplied bounding box 
+intersects or covers. This is what Revisits API uses to respond to index
+requests.
+
+Actual facility queries are handled on the clients end, in our offline usecase 
+it did not make sense to implent searches on the server. Especially since those
+kind of queries can already be answered through Mongo's geoqueries.
+
+--------------------------------------------------------------------------------
+4. ------------------------------- Conclusion ----------------------------------
+--------------------------------------------------------------------------------
+
+In the end what we have is a working soloution that hopefully scales well for
+millions of facilities. As an added bonus, due to the data being be compressed 
+and data being retrieved in chunks. Large queries that normaly crash Mongo due 
+to its memory limitations work fine using the indexes collection!
+
+Thankfully even though the compression is done in chunks instead of as a whole,
+we still manage to maintain a high compression rate. The effectiveness can be
+adjusted by fine tuning the threshold value. Query times are very fast, thanks
+again to data being constructed and compressed ahead of time. The extra time
+required to intersect a bounding box against nodes of the tree is negligible
+in comparison to network transfer times. 
+
+It would be ideal for the tree data structure to have a dynamic root, however in
+order to maintain a fast response time the tree structure needs to be static. In
+our tests, dynamic tree's took upwards of thirty seconds which is unresonable.
+There may be a clever way of building dynamic trees using the static tree,
+however this would require someone much more clever than I. Regardless, its
+unclear how much more effective that would be hence it may not be worth the 
+effort.
+
+Example code using this tree structure for a web app can be found in our sister 
+project Dokomoforms.
+

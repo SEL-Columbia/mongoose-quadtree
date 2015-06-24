@@ -6,10 +6,9 @@ Mongoose Quadtree
 ## Overview
 Mongoose-quadtree adds quadtree abilities to a model that has an appropiate lat/lng coordinates field. Think of it as an index.
 
-This plugin is designed to return spatial data in an organized and compressed manner. Leverging LZ-String, data can be compressed and queried and a very efficent manner. 
+This plugin is designed to return spatial data in a quadtree rooted at world boundries. Leverging LZ-String, data can be compressed and queried in a efficent manner. 
 
-The api returns all model data contained in the quadtree indexes leaf nodes
-that intersect with the specified lat/lng bounds. The data can be returned compressed (which is recommended), use LZString to decompress the data. The data is compressed in a format compatiable with localStorage (i.e packs data into uint16 bits)
+The API returns all model data contained in the quadtree indexes leaf nodes that intersect with the specified lat/lng bounds. The data can be returned compressed (which is recommended), use LZString to decompress the data. The data is compressed in a format compatiable with localStorage (i.e packs data into uint16 characters)
 
 All API methods return mongoose promises!
 
@@ -97,6 +96,7 @@ Updates happen transparently on save and remove calls ;) Don't even worry about 
 In development, it is safe to use now mostly, but I'd recommend rebuilding the index nightly.
 
 ### TODO
-Hook into mongo update calls, currently only save, remove are listened 
-Benchmarks?
+Hook into mongo update calls, currently only save, remove are listened to.
+
+When new facilities are inserted and a leaf node is broken. Code assumes that splitting the node gurantees four new leaf nodes are created. This is not always the case for badly layed out data and should not be assumed.
 
